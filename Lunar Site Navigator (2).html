@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lunar Site Navigator</title>
+<style>
+:root{--bg:#eef1f6;--panel:#fff;--text:#161c28;--muted:#5d6a82;--line:#dbe1ec;--accent:#2a62e8;--chip:#eef2fa;color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07090d;--panel:#131822;--text:#e7ecf6;--muted:#8f9cb5;--line:#242d3f;--accent:#6e9bff;--chip:#1b2230;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#07090d;--panel:#131822;--text:#e7ecf6;--muted:#8f9cb5;--line:#242d3f;--accent:#6e9bff;--chip:#1b2230;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;overflow:hidden}
+#side{width:380px;max-width:100%;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:2}
+#top{padding:14px 14px 10px;border-bottom:1px solid var(--line)}
+.brand{font:600 17px/1.2 Georgia,"Times New Roman",serif;margin-bottom:10px;letter-spacing:.2px}
+.sb{display:flex;align-items:center;gap:8px;background:var(--chip);border:1px solid var(--line);border-radius:24px;padding:0 16px;height:44px}
+.sb input{flex:1;border:0;background:none;color:inherit;font:inherit;outline:0;min-width:0}
+.sb:focus-within{border-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--text);border-radius:16px;padding:5px 12px;font:inherit;cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#scroll{overflow:auto;flex:1;padding:10px 14px 18px}
+.item{display:flex;gap:12px;padding:10px 8px;border-radius:10px;cursor:pointer;align-items:center}
+.item:hover{background:var(--chip)}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.muted{color:var(--muted)}
+.link{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:6px 0}
+h2{margin:4px 0 2px;font:600 22px/1.2 Georgia,"Times New Roman",serif}
+.btns{display:flex;gap:8px;margin:12px 0}
+.btn{border:1px solid var(--line);background:var(--chip);color:var(--text);border-radius:18px;padding:8px 16px;font:inherit;cursor:pointer}
+.btn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid var(--line)}
+.row span:last-child{text-align:right}
+.note{font-size:12px;color:var(--muted);margin-top:16px}
+.dir{position:relative;display:flex;flex-direction:column;gap:8px;padding-right:46px;margin:6px 0 14px}
+.dir label{font-size:12px;color:var(--muted)}
+select{width:100%;padding:10px;margin-top:3px;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--text);font:inherit}
+.swap{position:absolute;right:0;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--chip);color:var(--text);font-size:16px;cursor:pointer}
+.sum{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px}
+.sum b{font:600 26px/1.1 Georgia,serif}
+.mode{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.mode>span{font-size:20px;width:26px;text-align:center}
+.mode>div{flex:1}
+h3{margin:16px 0 0;font-size:14px}
+#map{flex:1;position:relative;min-width:0}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.zoom{position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:22px;cursor:pointer}
+#coord{position:absolute;left:10px;bottom:10px;font-size:12px;background:var(--panel);padding:3px 9px;border-radius:8px;border:1px solid var(--line)}
+@media(max-width:720px){body{flex-direction:column-reverse}#side{width:100%;height:48%;border-right:0;border-top:1px solid var(--line)}}
+</style></head><body>
+<aside id="side">
+<div id="top"><div class="brand">Lunar Site Navigator</div>
+<div class="sb"><span class="muted">&#9906;</span><input id="q" placeholder="Search the Moon" autocomplete="off"></div>
+<div class="chips" id="chips"></div></div>
+<div id="scroll"></div>
+</aside>
+<main id="map"><canvas id="cv"></canvas><div id="coord">Hover the map</div>
+<div class="zoom"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">&minus;</button></div></main>
+<script>
+const R=1737.4,rad=Math.PI/180,$=s=>document.querySelector(s);
+const P=[
+["Apollo 11, Tranquility Base",0.67,23.47,"Landing site","First crewed landing (1969), on the smooth plain of Mare Tranquillitatis.","Flat basalt plain with small craters and boulders",1],
+["Apollo 12",-3.01,-23.42,"Landing site","Landed in Oceanus Procellarum, a short walk from the Surveyor 3 probe.","Gentle mare plain beside a small crater",1],
+["Apollo 14",-3.65,-17.47,"Landing site","Fra Mauro highlands, covered in debris thrown out by the Imbrium impact.","Rolling hills, ridges and boulder fields",2],
+["Apollo 15",26.13,3.63,"Landing site","Hadley Rille at the foot of the Apennine Mountains. First mission to use the lunar rover.","Mountains, a deep winding rille and mare plain",3],
+["Apollo 16",-8.97,15.50,"Landing site","Descartes Highlands, the first crewed landing in the lunar highlands.","Cratered, hilly highlands",3],
+["Apollo 17",20.19,30.77,"Landing site","Taurus–Littrow valley, site of the last crewed landing (1972).","Narrow valley between tall massifs",2],
+["Shackleton Crater",-89.9,0,"Polar","A 21 km wide crater at the south pole. Its rim sees near-constant sunlight while the floor stays in permanent shadow and may hold water ice.","Steep walls and a permanently shadowed floor",5],
+["Malapert Massif",-85.99,0.12,"Polar","A peak near the south pole with long sunlight and a view of Earth, a candidate for relay stations.","Rugged massif with steep slopes",4],
+["Tycho Crater",-43.31,-11.36,"Crater","A young 85 km crater with bright rays that stretch across the near side.","Terraced walls, central peak, rough floor",4],
+["Copernicus Crater",9.62,-20.08,"Crater","A 93 km crater with terraced walls and a central mountain group.","Terraced walls, central peaks, rough floor",4],
+["Aristarchus Crater",23.7,-47.4,"Crater","One of the brightest craters, next to a volcanic plateau and sinuous rilles.","Bright steep crater with rilles nearby",4],
+["Chang’e 4",-45.46,177.59,"Landing site","First soft landing on the far side (2019), inside Von Kármán crater.","Ancient basin floor covered in ejecta",3],
+["Chang’e 6",-41.64,-153.98,"Landing site","Far side sample-return mission (2024), landed in the Apollo basin.","Basin floor with mare basalt",2],
+["Artemis III: Amundsen Rim",-84.467,66.97,"Artemis","One of NASA’s 13 Artemis III candidate landing regions near the south pole (announced 2022). Each region is about 15 by 15 km, with landing sites of roughly 100 m radius. Pinned at candidate site AR01 from a published landing-site study.","Crater rim near the south pole. Check NASA’s landing region slope data."],
+["Artemis III: Nobile Rim 2",-84.2016,60.6999,"Artemis","One of NASA’s 13 Artemis III candidate landing regions near the south pole (announced 2022). Pinned at the top-scoring point from a published landing-site study, not an official NASA pick.","Crater rim near the south pole. Check NASA’s landing region slope data."]
+].map((a,i)=>({id:i,n:a[0],la:a[1],lo:a[2],k:a[3],d:a[4],t:a[5],r:a[6]}));
+const COL={"Landing site":"#ffb020","Crater":"#5bc0ff","Polar":"#6be3b0","Artemis":"#c58bff","Custom location":"#ff5d73"};
+const LV=["Easy","Moderate","Challenging","Hard","Extreme"];
+const tex=(()=>{const W=3072,H=1536,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");let s=11;
+const rnd=()=>(s=s*16807%2147483647)/2147483647,X=o=>(o+180)/360*W,Y=a=>(90-a)/180*H;
+const blob=(x,y,r,rgb,a)=>{const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,`rgba(${rgb},${a})`);q.addColorStop(1,`rgba(${rgb},0)`);g.fillStyle=q;g.fillRect(x-r,y-r,2*r,2*r)};
+g.fillStyle="#8e8e8c";g.fillRect(0,0,W,H);
+for(let i=0;i<9000;i++)blob(rnd()*W,rnd()*H,5+rnd()*50,rnd()<.5?"255,255,255":"0,0,0",.05);
+[[33,-16,15],[28,18,10],[8,31,11],[17,59,8],[-8,51,8],[-21,-15,11],[19,-55,24],[-24,-39,8],[-15,34,6],[56,0,8],[-4,-30,9],[41,-30,11],[-42,-153,5],[-45,178,5]].forEach(([a,o,r])=>{for(let i=0;i<14;i++)blob(X(o)+(rnd()-.5)*r*W/360*1.4,Y(a)+(rnd()-.5)*r*H/180*1.4,r*H/180*(.6+rnd()*.7),"44,46,52",.5)});
+for(let i=0;i<5200;i++){const x=rnd()*W,y=rnd()*H,r=1.5+rnd()**4*34,q=g.createRadialGradient(x,y,r*.5,x,y,r);q.addColorStop(0,"rgba(0,0,0,.3)");q.addColorStop(.75,"rgba(0,0,0,.08)");q.addColorStop(.9,"rgba(255,255,255,.25)");q.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=q;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+[[-43.3,-11.4,90],[9.6,-20,40],[23.7,-47.4,30]].forEach(([a,o,L])=>{const x=X(o),y=Y(a);g.strokeStyle="rgba(255,255,255,.1)";g.lineWidth=2;for(let i=0;i<26;i++){const t=rnd()*6.28,l=L*(.4+rnd())*H/180;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(t)*l,y+Math.sin(t)*l);g.stroke()}blob(x,y,14,"255,255,255",.8)});
+return c})();
+const cv=$("#cv"),cx=cv.getContext("2d");
+let W=1,H=1,D=window.devicePixelRatio||1,sel=null,A=null,B=null,mode="x",custom=null,flt="All",qs="",route=null,raf;
+const v={lo:0,la:0,z:0};
+const all=()=>custom?P.concat(custom):P;
+const setZ=z=>{v.z=Math.min(30,Math.max(z,W/360,H/180))};
+const clamp=()=>{setZ(v.z);const a=W/2/v.z,b=H/2/v.z;v.lo=Math.min(180-a,Math.max(a-180,v.lo));v.la=Math.min(90-b,Math.max(b-90,v.la))};
+const xy=(la,lo)=>[W/2+(lo-v.lo)*v.z,H/2+(v.la-la)*v.z],geo=(x,y)=>[v.la-(y-H/2)/v.z,v.lo+(x-W/2)/v.z];
+const fc=p=>`${Math.abs(p.la).toFixed(2)}°${p.la<0?"S":"N"} ${Math.abs(p.lo).toFixed(2)}°${p.lo<0?"W":"E"}`;
+const dist=(a,b)=>{const p=(b.la-a.la)*rad,l=(b.lo-a.lo)*rad,h=Math.sin(p/2)**2+Math.cos(a.la*rad)*Math.cos(b.la*rad)*Math.sin(l/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+const bear=(a,b)=>{const l=(b.lo-a.lo)*rad,y=Math.sin(l)*Math.cos(b.la*rad),x=Math.cos(a.la*rad)*Math.sin(b.la*rad)-Math.sin(a.la*rad)*Math.cos(b.la*rad)*Math.cos(l);return(Math.atan2(y,x)/rad+360)%360};
+function gc(a,b,n){const f=p=>[Math.cos(p.la*rad)*Math.cos(p.lo*rad),Math.cos(p.la*rad)*Math.sin(p.lo*rad),Math.sin(p.la*rad)],u=f(a),w=f(b),o=Math.acos(Math.min(1,Math.max(-1,u[0]*w[0]+u[1]*w[1]+u[2]*w[2]))),out=[];for(let i=0;i<=n;i++){const s=i/n,k1=o?Math.sin((1-s)*o)/Math.sin(o):1-s,k2=o?Math.sin(s*o)/Math.sin(o):s,x=k1*u[0]+k2*w[0],y=k1*u[1]+k2*w[1],z=k1*u[2]+k2*w[2];out.push([Math.atan2(z,Math.hypot(x,y))/rad,Math.atan2(y,x)/rad])}return out}
+function mark(p){const[x,y]=xy(p.la,p.lo);if(x<-20||y<-20||x>W+20||y>H+20)return;const on=p===sel;cx.beginPath();cx.arc(x,y,on?9:6,0,7);cx.fillStyle=COL[p.k];cx.fill();cx.lineWidth=2;cx.strokeStyle="#fff";cx.stroke();
+if(on||p.custom||v.z>=4){cx.font="600 12px system-ui,sans-serif";cx.lineJoin="round";cx.lineWidth=3;cx.strokeStyle="rgba(0,0,0,.75)";cx.strokeText(p.n,x+12,y+4);cx.fillStyle="#fff";cx.fillText(p.n,x+12,y+4)}}
+function draw(){cx.setTransform(D,0,0,D,0,0);cx.fillStyle="#07090d";cx.fillRect(0,0,W,H);cx.imageSmoothingQuality="high";
+const[x0,y0]=xy(90,-180);cx.drawImage(tex,x0,y0,360*v.z,180*v.z);
+const st=v.z>12?5:v.z>5?10:30;cx.strokeStyle="rgba(255,255,255,.14)";cx.lineWidth=1;cx.beginPath();
+for(let o=-180;o<=180;o+=st){const x=xy(0,o)[0];cx.moveTo(x,0);cx.lineTo(x,H)}
+for(let a=-90;a<=90;a+=st){const y=xy(a,0)[1];cx.moveTo(0,y);cx.lineTo(W,y)}cx.stroke();
+if(route){const pts=gc(route.a,route.b,Math.max(12,Math.ceil(route.d/25)));cx.lineCap="round";
+[["rgba(255,255,255,.9)",6],["#4f8cff",3.5]].forEach(([c,w])=>{cx.strokeStyle=c;cx.lineWidth=w;cx.beginPath();pts.forEach((q,i)=>{const[x,y]=xy(q[0],q[1]);i&&Math.abs(q[1]-pts[i-1][1])<180?cx.lineTo(x,y):cx.moveTo(x,y)});cx.stroke()})}
+all().forEach(mark);
+if(route)[[route.a,"A"],[route.b,"B"]].forEach(([p,l])=>{const[x,y]=xy(p.la,p.lo);cx.beginPath();cx.arc(x,y,12,0,7);cx.fillStyle="#2a62e8";cx.fill();cx.lineWidth=2;cx.strokeStyle="#fff";cx.stroke();cx.fillStyle="#fff";cx.font="700 13px system-ui,sans-serif";cx.textAlign="center";cx.fillText(l,x,y+4.5);cx.textAlign="left"})}
+function size(){const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;clamp();draw()}
+function fly(la,lo,z){cancelAnimationFrame(raf);const s={...v},t0=performance.now(),step=t=>{const k=Math.min(1,(t-t0)/450),e=k*k*(3-2*k);v.la=s.la+(la-s.la)*e;v.lo=s.lo+(lo-s.lo)*e;setZ(s.z+(z-s.z)*e);clamp();draw();if(k<1)raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
+function zoomAt(x,y,f){const[a,o]=geo(x,y);setZ(v.z*f);v.lo=o-(x-W/2)/v.z;v.la=a+(y-H/2)/v.z;clamp();draw()}
+const ptrs=new Map();let moved=0,pd=0;
+const pinchD=()=>{const a=[...ptrs.values()];return a.length==2?Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]):0};
+cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.offsetX,e.offsetY]);moved=0;pd=pinchD();cv.style.cursor="grabbing";cancelAnimationFrame(raf)};
+cv.onpointermove=e=>{const g=geo(e.offsetX,e.offsetY);$("#coord").textContent=fc({la:g[0],lo:g[1]});const o=ptrs.get(e.pointerId);if(!o)return;const n=[e.offsetX,e.offsetY];
+if(ptrs.size==1){v.lo-=(n[0]-o[0])/v.z;v.la+=(n[1]-o[1])/v.z;moved+=Math.abs(n[0]-o[0])+Math.abs(n[1]-o[1])}
+else{ptrs.set(e.pointerId,n);const d=pinchD(),a=[...ptrs.values()];if(pd)zoomAt((a[0][0]+a[1][0])/2,(a[0][1]+a[1][1])/2,d/pd);pd=d;moved=99}
+ptrs.set(e.pointerId,n);clamp();draw()};
+cv.onpointerup=cv.onpointercancel=e=>{ptrs.delete(e.pointerId);cv.style.cursor="grab";if(e.type=="pointerup"&&moved<6&&!ptrs.size)tap(e.offsetX,e.offsetY)};
+cv.addEventListener("wheel",e=>{e.preventDefault();zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*.0015))},{passive:false});
+$("#zi").onclick=()=>zoomAt(W/2,H/2,1.6);$("#zo").onclick=()=>zoomAt(W/2,H/2,1/1.6);
+function pick(p,f){sel=p;mode="x";if(f)fly(p.la,p.lo,Math.max(v.z,8));ui()}
+function tap(x,y){let b=null,m=16;all().forEach(p=>{const[px,py]=xy(p.la,p.lo),d=Math.hypot(px-x,py-y);if(d<m){m=d;b=p}});if(b)return pick(b);
+const[la,lo]=geo(x,y);custom=custom||{id:P.length,n:"Dropped pin",k:"Custom location",d:"Any spot on the Moon can be your destination. Use it as the start or end of a route.",custom:1};custom.la=la;custom.lo=lo;pick(custom)}
+const inf=p=>{const a=Math.abs(p.la),far=Math.abs(p.lo)>90;return{
+t:p.t||"Not catalogued. Check LRO imagery before committing to a landing here.",
+tmp:a>80?"About −170 °C to −30 °C, and below −230 °C in shadowed craters":"About −170 °C at night to +120 °C at midday",
+sun:a>85?"Near-continuous on ridges, permanent dark in craters":"About 14 Earth days of sun, then 14 of night",
+com:a>80?"Intermittent, depends on terrain":far?"None direct. Needs a relay satellite":"Direct line of sight to Earth",
+r:p.r||Math.min(5,1+Math.round(a/30))}};
+const dots=n=>"●".repeat(n)+"○".repeat(5-n);
+const fmt=h=>h<1?Math.round(h*60)+" min":h<48?h.toFixed(1)+" hours":(h/24).toFixed(1)+" days";
+function dirGo(){if(!route)return;const a=route.a,b=route.b;fly((a.la+b.la)/2,(a.lo+b.lo)/2,Math.min(W/Math.max(Math.abs(a.lo-b.lo)*1.7,8),H/Math.max(Math.abs(a.la-b.la)*1.7,8)))}
+function ui(){const el=$("#scroll"),back='<button class="link" data-a="back">← All places</button>',note='<p class="note">The surface is an illustrative render made in your browser. Site facts come from public mission records. Ratings and travel times are simplified planning estimates, not mission-grade.</p>';
+route=null;
+if(mode=="d"){const op=c=>all().map(p=>`<option value="${p.id}"${p===c?" selected":""}>${p.n}</option>`).join("");
+let res="";
+if(A===B)res='<p class="muted">Choose two different places.</p>';
+else{const d=dist(A,B),b=bear(A,B),cp=["north","northeast","east","southeast","south","southwest","west","northwest"][Math.round(b/45)%8];route={a:A,b:B,d};
+res=`<div class="sum"><b>${Math.round(d).toLocaleString()} km</b><span class="muted">heading ${cp}, ${Math.round(b)}°</span></div>`+
+[["🚙","Unpressurized rover","About 10 km/h, Apollo rover pace",d/10],["🚐","Pressurized rover","About 15 km/h, cabin rover",d/15],["🚀","Lander hop","Ballistic flight plus 25 min of prep",.42+d/5400]].map((m,i)=>`<div class="mode"><span>${m[0]}</span><div><b>${m[1]}</b><div class="muted">${m[2]}${i<2&&m[3]>168?", not practical":""}</div></div><b>${fmt(m[3])}</b></div>`).join("")}
+el.innerHTML=`${back}<div class="dir"><label>Start<select id="sa">${op(A)}</select></label><button class="swap" data-a="swap" aria-label="Swap start and destination">⇅</button><label>Destination<select id="sb">${op(B)}</select></label></div>${res}
+<h3>Getting to the Moon</h3><div class="mode"><span>🌍</span><div><b>From Earth</b><div class="muted">About 384,400 km, Apollo-class transfer</div></div><b>3 days</b></div>
+<p class="muted">Tip: click anywhere on the map to drop a pin, then use it as a start or destination.</p>${note}`}
+else if(sel){const i=inf(sel);let nr="";if(sel.custom){const n=P.reduce((a,p)=>dist(sel,p)<dist(sel,a)?p:a);nr=`<div class="row"><span class="muted">Nearest site</span><span>${n.n}, ${Math.round(dist(sel,n)).toLocaleString()} km</span></div>`}
+el.innerHTML=`${back}<h2>${sel.n}</h2><div class="muted">${sel.k}, ${fc(sel)}</div><p>${sel.d}</p><div class="btns"><button class="btn pri" data-a="to">Directions</button><button class="btn" data-a="from">Start here</button></div>`+
+[["Terrain",i.t],["Temperature",i.tmp],["Sunlight",i.sun],["Earth link",i.com],[sel.custom?"Est. difficulty":"Difficulty",dots(i.r)+" "+LV[i.r-1]]].map(r=>`<div class="row"><span class="muted">${r[0]}</span><span>${r[1]}</span></div>`).join("")+nr+note}
+else{const L=P.filter(p=>(flt=="All"||p.k==flt)&&p.n.toLowerCase().includes(qs));
+el.innerHTML=(L.length?L.map(p=>`<div class="item" data-a="pick" data-i="${p.id}"><i class="dot" style="background:${COL[p.k]}"></i><div><b>${p.n}</b><div class="muted">${p.k}, ${fc(p)}</div></div></div>`).join(""):'<p class="muted">No matches. Click anywhere on the map to drop a pin.</p>')+note}
+$("#chips").innerHTML=[["All","All"],["Landing site","Landing sites"],["Crater","Craters"],["Polar","Poles"],["Artemis","Artemis III"],["D","⇄ Directions"]].map(c=>`<button class="chip${(mode=="d"?"D":flt)==c[0]?" on":""}" data-c="${c[0]}">${c[1]}</button>`).join("");
+draw()}
+$("#scroll").onclick=e=>{const t=e.target.closest("[data-a]");if(!t)return;const a=t.dataset.a;
+if(a=="pick")pick(P[+t.dataset.i],1);
+else if(a=="back"){sel=null;mode="x";ui()}
+else if(a=="to"){B=sel;if(!A||A===B)A=P[sel===P[0]?5:0];mode="d";ui();dirGo()}
+else if(a=="from"){A=sel;if(!B||B===A)B=P[sel===P[6]?7:6];mode="d";ui();dirGo()}
+else if(a=="swap"){[A,B]=[B,A];ui();dirGo()}};
+$("#scroll").onchange=e=>{if(e.target.id=="sa"||e.target.id=="sb"){A=all()[$("#sa").value];B=all()[$("#sb").value];ui();dirGo()}};
+$("#chips").onclick=e=>{const c=e.target.dataset.c;if(!c)return;if(c=="D"){A=A||P[0];B=B||P[6];mode="d";ui();dirGo()}else{flt=c;sel=null;mode="x";ui()}};
+$("#q").oninput=e=>{qs=e.target.value.toLowerCase().trim();sel=null;mode="x";ui()};
+$("#q").onkeydown=e=>{if(e.key=="Enter"){const p=P.find(p=>p.n.toLowerCase().includes(qs));if(p)pick(p,1)}};
+size();new ResizeObserver(size).observe($("#map"));ui();
+</script></body></html>
