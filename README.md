@@ -4,7 +4,7 @@ NASA Space Apps Challenge 2026 project for the challenge **Lunar Landing Site Na
 
 A tool for comparing lunar south pole landing sites and dates by where the Sun and Earth sit above the local horizon, which tells you about power potential and direct-to-Earth communication windows.
 
-**Live demo:** _add your GitHub Pages link here_
+**Live demo:** https://annikakanungo.github.io/Moon_Maps/
 
 ## What it does
 - Compare two scenarios side by side (site + start date, 14 / 30 / 60 day window).
