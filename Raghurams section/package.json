@@ -1,0 +1,22 @@
+{
+  "name": "nasa-space-apps",
+  "version": "1.0.0",
+  "description": "Nasa space apps resources: NASA does not endorse any non-U.S. Government entity and is not responsible for information contained on non-U.S. Government websites. For non-U.S. Government websites, participants must comply with any data use parameters of that specific website.\r NASA Data & Resources",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raghuramcoding/Nasa-Space-Apps.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Raghuramcoding/Nasa-Space-Apps/issues"
+  },
+  "homepage": "https://github.com/Raghuramcoding/Nasa-Space-Apps#readme",
+  "dependencies": {
+    "three": "^0.187.0"
+  }
+}

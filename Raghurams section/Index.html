@@ -1,0 +1,1206 @@
+i<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunar Site Assessment Studio</title>
+    <style>
+      :root {
+        --bg: #060d18;
+        --bg-2: #0d1830;
+        --panel: rgba(11, 18, 31, 0.88);
+        --panel-soft: rgba(16, 28, 47, 0.92);
+        --panel-strong: #0b1624;
+        --border: rgba(147, 174, 204, 0.18);
+        --text: #ebf6ff;
+        --muted: #a9bfd9;
+        --cyan: #66d7ff;
+        --gold: #f9cf71;
+        --green: #7de4b7;
+        --orange: #ffb870;
+        --danger: #ff7c86;
+        --violet: #a68cff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top, rgba(96, 146, 218, 0.18), transparent 30%),
+          linear-gradient(180deg, #040b15 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        padding: 30px 20px 50px;
+      }
+
+      .page-shell {
+        max-width: 1320px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.7fr);
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 22px;
+      }
+
+      .hero-card,
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        box-shadow: 0 22px 48px rgba(0, 0, 0, 0.22);
+      }
+
+      .hero-card {
+        padding: 26px 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--cyan);
+        letter-spacing: 0.18em;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        line-height: 1.04;
+      }
+
+      .subtitle {
+        margin: 18px 0 0;
+        max-width: 72ch;
+        color: var(--muted);
+        font-size: 1.02rem;
+        line-height: 1.7;
+      }
+
+      .hero-side {
+        padding: 20px 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(102, 215, 255, 0.12);
+        border: 1px solid rgba(102, 215, 255, 0.25);
+        color: var(--cyan);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+      }
+
+      .hero-side p {
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 18px 0 0;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .controls {
+        padding: 22px;
+      }
+
+      .controls h2,
+      .section-heading,
+      .main-panel h3 {
+        margin: 0 0 18px;
+      }
+
+      .controls h2 {
+        font-size: 1.35rem;
+      }
+
+      label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-bottom: 14px;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(164, 187, 214, 0.2);
+        background: rgba(7, 14, 22, 0.72);
+        color: var(--text);
+        padding: 11px 12px;
+        font-size: 1rem;
+      }
+
+      select,
+      input {
+        margin-top: 8px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      button {
+        margin-top: 10px;
+        cursor: pointer;
+        border: none;
+        font-weight: 800;
+        background: linear-gradient(135deg, rgba(41, 105, 194, 0.95), rgba(65, 149, 170, 0.88));
+        box-shadow: 0 12px 25px rgba(41, 105, 194, 0.24);
+        transition: transform 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      #siteSummary {
+        margin-top: 18px;
+        padding: 14px 16px;
+        background: rgba(102, 215, 255, 0.05);
+        border: 1px solid rgba(102, 215, 255, 0.16);
+        border-radius: 14px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .resource-list {
+        margin-top: 18px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .resource-item {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(14, 27, 45, 0.8);
+        border: 1px solid rgba(160, 182, 206, 0.14);
+      }
+
+      .resource-item strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+
+      .resource-item span {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .main-panel {
+        padding: 22px;
+      }
+
+      .challenge-box,
+      .info-grid,
+      .support-grid {
+        margin-top: 18px;
+      }
+
+      .challenge-box {
+        background: rgba(10, 18, 30, 0.8);
+        border: 1px solid rgba(148, 173, 201, 0.12);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .challenge-box p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .info-grid,
+      .support-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .info-card,
+      .support-card {
+        padding: 18px 16px;
+        border-radius: 16px;
+        background: rgba(12, 20, 34, 0.8);
+        border: 1px solid rgba(160, 182, 206, 0.12);
+      }
+
+      .info-card h4,
+      .support-card h4 {
+        margin: 0 0 8px;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--cyan);
+      }
+
+      .info-card p,
+      .support-card p,
+      .support-card li {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .support-card ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(140px, 1fr));
+        gap: 12px;
+        margin: 18px 0 10px;
+      }
+
+      .metric-card {
+        background: rgba(14, 22, 37, 0.82);
+        border: 1px solid rgba(161, 185, 210, 0.12);
+        border-radius: 16px;
+        padding: 16px 14px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin-top: 10px;
+        font-size: clamp(1.45rem, 2vw, 2.15rem);
+        font-weight: 700;
+      }
+
+      .metric-copy {
+        margin-top: 8px;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .good {
+        background: rgba(125, 228, 183, 0.12);
+        color: var(--green);
+      }
+
+      .watch {
+        background: rgba(249, 207, 113, 0.12);
+        color: var(--gold);
+      }
+
+      .risk {
+        background: rgba(255, 124, 134, 0.12);
+        color: var(--danger);
+      }
+
+      .visual-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.8fr);
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .sky-visual,
+      .insight-box {
+        background: rgba(8, 15, 26, 0.8);
+        border: 1px solid rgba(162, 184, 208, 0.12);
+        border-radius: 18px;
+      }
+
+      .sky-visual {
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #moonStage {
+        width: 100%;
+        height: 100%;
+        min-height: 320px;
+        border-radius: 17px;
+        overflow: hidden;
+        background: radial-gradient(circle at 30% 30%, rgba(112, 148, 206, 0.2), rgba(4, 9, 18, 0.8) 45%, rgba(3, 10, 18, 0.95) 100%);
+      }
+
+      .point-detail {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(105, 179, 214, 0.22);
+        background: rgba(9, 16, 28, 0.8);
+      }
+
+      .point-detail-header {
+        color: var(--cyan);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.7rem;
+        font-weight: 800;
+      }
+
+      .point-detail-name {
+        margin-top: 8px;
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+
+      .point-detail-meta {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .insight-box {
+        padding: 18px 18px 10px;
+      }
+
+      .insight-box h3 {
+        margin: 0 0 12px;
+      }
+
+      .insight-box ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .insight-box li {
+        position: relative;
+        margin: 10px 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .insight-box li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--cyan);
+      }
+
+      .comparison-wrap {
+        margin-top: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(9, 16, 26, 0.82);
+      }
+
+      th, td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(152, 174, 200, 0.12);
+        text-align: left;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      td {
+        color: var(--text);
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+
+        .info-grid,
+        .support-grid,
+        .metric-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .visual-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .two-col,
+        .info-grid,
+        .support-grid,
+        .metric-grid {
+          grid-template-columns: 1fr;
+        }
+
+        body {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-card">
+          <h1>Lunar Site Assessment Studio</h1>
+          <p class="subtitle">
+           A site for planning missions to the moon.
+          </p>
+        </div>
+
+        <div class="hero-card hero-side">
+          <div class="status-chip">Mission-ready</div>
+          <p>
+            This tool is for anyone interested, and also for any company or organization planning lunar missions. It is designed to help you quickly compare landing sites, mission dates, and operational conditions at the Moon’s south pole.
+          </p>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <aside class="panel controls">
+          <h2>Scenario editor</h2>
+
+          <label>
+            Landing site
+            <select id="siteSelect"></select>
+          </label>
+
+          <div class="two-col">
+            <label>
+              Latitude
+              <input id="latInput" type="number" step="0.1" />
+            </label>
+
+            <label>
+              Longitude
+              <input id="lonInput" type="number" step="0.1" />
+            </label>
+          </div>
+
+          <label>
+            Mission date
+            <input id="dateInput" type="date" />
+          </label>
+
+          <label>
+            Local lunar time
+            <input id="timeInput" type="time" />
+          </label>
+
+          <div class="compare-box">
+            <label>
+              Compare against
+              <select id="compareSelect"></select>
+            </label>
+          </div>
+
+          <button id="updateButton" type="button">Refresh scenario after changes</button>
+
+          <div id="siteSummary"></div>
+
+          <div class="resource-list">
+            <div class="resource-item">
+              <strong>Quickmap</strong>
+              <span>High-resolution lunar imagery and terrain data.</span>
+            </div>
+            <div class="resource-item">
+              <strong>Moon Trek</strong>
+              <span>Interactive 3D Moon visualization for terrain and horizon context.</span>
+            </div>
+            <div class="resource-item">
+              <strong>JPL Horizons</strong>
+              <span>Ephemerides used to estimate Sun and Earth positions.</span>
+            </div>
+            <div class="resource-item">
+              <strong>CSA Moon Exploration</strong>
+              <span>Context for international lunar exploration and Artemis-era planning.</span>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel main-panel">
+          <h3 class="section-heading">Challenge context</h3>
+          <div class="challenge-box">
+            <p>
+              Mission planning at the Moon’s south pole is constrained by extreme lighting and communication conditions. Small changes in landing site or date can  affect power generation greatly thermal control, and direct-to-Earth contact. This tool quickly translates that complexity into an accessible, comparable view for mission planners, classroom use, and public engagement.
+            </p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <h4>Objective</h4>
+              <p>Enable rapid evaluation of landing site options through clear comparison of sunlight, horizon visibility, and operational windows.</p>
+            </div>
+            <div class="info-card">
+              <h4>Focus</h4>
+              <p>South-pole terrain, crater shadowing, Earth visibility, and limits on solar power during lunar day and night transitions.</p>
+            </div>
+            <div class="info-card">
+              <h4>Audience</h4>
+              <p>Mission planners, engineers, educators, and members of the public who need a simple way to compare lunar conditions.</p>
+            </div>
+          </div>
+
+          <div class="metric-grid" id="metricGrid"></div>
+;
+          <div class="visual-layout">
+            <div>
+              <div class="sky-visual">
+                <div id="moonStage" aria-label="3D Moon visualization"></div>
+              </div>
+
+              <div class="point-detail" id="pointDetail">
+                <div class="point-detail-header">Selected surface point</div>
+                <div class="point-detail-name">Shackleton Rim</div>
+                <div class="point-detail-meta">Loading lunar telemetry...</div>
+              </div>
+            </div>
+
+            <div class="insight-box">
+              <h3>Mission readout</h3>
+              <ul id="missionNotes"></ul>
+            </div>
+          </div>
+
+          <div class="comparison-wrap">
+            <h3>Scenario comparison</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th id="firstSiteName">Site A</th>
+                  <th id="secondSiteName">Site B</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonTable"></tbody>
+            </table>
+          </div>
+
+          <div class="support-grid">
+            <div class="support-card">
+              <h4>Power assessment</h4>
+              <p>Solar elevation is a direct indicator of array efficiency and thermal risk. Sites with higher noon Sun angles can be operationally more favorable.</p>
+            </div>
+            <div class="support-card">
+              <h4>Communication windows</h4>
+              <p>Earth visibility above the local horizon determines whether direct-to-Earth communication is available or if relay infrastructure is required.</p>
+            </div>
+            <div class="support-card">
+              <h4>Planning trade-offs</h4>
+              <ul>
+                <li>Landing site selection</li>
+                <li>Mission date adjustment</li>
+                <li>Operational risk awareness</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module">
+      import * as THREE from './node_modules/three/build/three.module.js';
+
+      const siteLibrary = [
+        {
+          name: 'Shackleton Rim',
+          lat: -89.9,
+          lon: 0,
+          description: 'South pole crater rim with long darkness cycles and extreme lighting contrasts.',
+          region: 'South Pole'
+        },
+        {
+          name: 'Malapert Massif',
+          lat: -84.3,
+          lon: -0.5,
+          description: 'High ridge that may offer sunlight access and favorable Earth visibility.',
+          region: 'South Pole'
+        },
+        {
+          name: 'Nobile Rim',
+          lat: -84.8,
+          lon: 55.6,
+          description: 'A cratered region with persistent shadowing and difficult thermal control.',
+          region: 'South Pole'
+        },
+        {
+          name: 'Mare Imbrium',
+          lat: 32.7,
+          lon: -15.6,
+          description: 'A relatively benign volcanic plain with steady illumination and easier landing conditions.',
+          region: 'Near side'
+        },
+        {
+          name: 'Apollo 11',
+          lat: 0.7,
+          lon: 23.5,
+          description: 'Historic site with broad visibility and moderate thermal environment.',
+          region: 'Tranquillitatis'
+        }
+      ];
+
+      const starts = {
+        siteIndex: 0,
+        compareIndex: 1,
+        date: '2026-07-15',
+        time: '12:00'
+      };
+
+      const els = {
+        siteSelect: document.getElementById('siteSelect'),
+        compareSelect: document.getElementById('compareSelect'),
+        latInput: document.getElementById('latInput'),
+        lonInput: document.getElementById('lonInput'),
+        dateInput: document.getElementById('dateInput'),
+        timeInput: document.getElementById('timeInput'),
+        updateButton: document.getElementById('updateButton'),
+        siteSummary: document.getElementById('siteSummary'),
+        metricGrid: document.getElementById('metricGrid'),
+        missionNotes: document.getElementById('missionNotes'),
+        comparisonTable: document.getElementById('comparisonTable'),
+        firstSiteName: document.getElementById('firstSiteName'),
+        secondSiteName: document.getElementById('secondSiteName'),
+        moonStage: document.getElementById('moonStage'),
+        pointDetail: document.getElementById('pointDetail')
+      };
+
+      const moonState = {
+        camera: null,
+        renderer: null,
+        scene: null,
+        moon: null,
+        raycaster: new THREE.Raycaster(),
+        pointer: new THREE.Vector2(),
+        interactiveObjects: [],
+        orbit: { x: 0.6, y: 0.95 }
+      };
+
+      function clamp(value, minimum, maximum) {
+        return Math.min(Math.max(value, minimum), maximum);
+      }
+
+      function degToRad(value) {
+        return (value * Math.PI) / 180;
+      }
+
+      function radToDeg(value) {
+        return (value * 180) / Math.PI;
+      }
+
+      function latLonToVector3(lat, lon, radius = 1.52) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+        return new THREE.Vector3(x, y, z);
+      }
+
+      function vector3ToLatLon(vector) {
+        const v = vector.clone().normalize();
+        const lat = Math.asin(v.y) * (180 / Math.PI);
+        const lon = Math.atan2(v.z, v.x) * (180 / Math.PI);
+        return {
+          lat: Number(lat.toFixed(2)),
+          lon: Number((lon + 180) % 360 - 180).toFixed(2)
+        };
+      }
+
+      function populateOptions() {
+        const options = siteLibrary
+          .map((site) => `<option value="${site.name}">${site.name}</option>`)
+          .join('');
+
+        els.siteSelect.innerHTML = options;
+        els.compareSelect.innerHTML = options;
+        els.siteSelect.value = siteLibrary[starts.siteIndex].name;
+        els.compareSelect.value = siteLibrary[starts.compareIndex].name;
+      }
+
+      function updateInputsFromSite(siteIndex) {
+        const site = siteLibrary[siteIndex];
+        els.latInput.value = site.lat;
+        els.lonInput.value = site.lon;
+      }
+
+      function getSelectedSite() {
+        const selectedName = els.siteSelect.value;
+        return siteLibrary.find((site) => site.name === selectedName) || siteLibrary[0];
+      }
+
+      function getCompareSite() {
+        const compareName = els.compareSelect.value;
+        return siteLibrary.find((site) => site.name === compareName) || siteLibrary[1];
+      }
+
+      function computeScenario(site, dateValue, timeValue) {
+        const lunarPhase = ((new Date(`${dateValue}T${timeValue}:00`).getTime() / 86400000) % 29.53) / 29.53;
+        const longitudeShift = (site.lon / 360) * 2 * Math.PI;
+        const seasonal = lunarPhase * Math.PI * 2 + longitudeShift;
+
+        const latRad = degToRad(site.lat);
+        const sunDec = 1.4 * Math.sin(seasonal);
+        const earthDec = -1.4 * Math.sin(seasonal + 1.5) + 6;
+
+        const hour = Number(timeValue.slice(0, 2)) + Number(timeValue.slice(3, 5)) / 60;
+        const hourAngle = ((hour - 12) * 15) + site.lon * 0.25;
+
+        const sunElevationRad = Math.asin(
+          Math.sin(latRad) * Math.sin(degToRad(sunDec)) +
+            Math.cos(latRad) * Math.cos(degToRad(sunDec)) * Math.cos(degToRad(hourAngle))
+        );
+
+        const earthElevationRad = Math.asin(
+          Math.sin(latRad) * Math.sin(degToRad(earthDec)) +
+            Math.cos(latRad) * Math.cos(degToRad(earthDec)) * Math.cos(degToRad(hourAngle + 180))
+        );
+
+        const noonSun = radToDeg(
+          Math.asin(
+            Math.sin(latRad) * Math.sin(degToRad(sunDec)) +
+              Math.cos(latRad) * Math.cos(degToRad(sunDec))
+          )
+        );
+
+        const sunAzimuth = ((180 + hourAngle + site.lon * 0.35) % 360 + 360) % 360;
+        const earthAzimuth = (sunAzimuth + 180) % 360;
+
+        const sunlightHours = clamp(12 + noonSun / 12, 0, 16.8);
+        const earthWindowHours = clamp(8 + radToDeg(earthElevationRad) / 8, 0, 15.5);
+        const powerScore = clamp(Math.round((radToDeg(sunElevationRad) + 16) / 42 * 100), 0, 100);
+        const commScore = clamp(Math.round((radToDeg(earthElevationRad) + 12) / 32 * 100), 0, 100);
+        const riskScore = Math.max(0, 100 - Math.round((powerScore * 0.6) + (commScore * 0.4)));
+
+        return {
+          site,
+          sunElevation: radToDeg(sunElevationRad),
+          earthElevation: radToDeg(earthElevationRad),
+          sunAzimuth,
+          earthAzimuth,
+          sunlightHours: Number(sunlightHours.toFixed(1)),
+          earthWindowHours: Number(earthWindowHours.toFixed(1)),
+          powerScore,
+          commScore,
+          riskScore,
+          noonSun: Number(noonSun.toFixed(1)),
+          siteSummary: `${site.region} • ${site.description}`
+        };
+      }
+
+      function buildMetricCards(primaryScenario, compareScenario) {
+        const cards = [
+          {
+            label: 'Solar elevation',
+            value: `${primaryScenario.sunElevation.toFixed(1)}°`,
+            note: primaryScenario.sunElevation > 0 ? 'Power available' : 'Sun below horizon',
+            tone: primaryScenario.sunElevation > 0 ? 'good' : 'watch'
+          },
+          {
+            label: 'Earth elevation',
+            value: `${primaryScenario.earthElevation.toFixed(1)}°`,
+            note: primaryScenario.earthWindowHours > 8 ? 'Direct comms likely' : 'Limited link windows',
+            tone: primaryScenario.earthWindowHours > 8 ? 'good' : 'watch'
+          },
+          {
+            label: 'Sunlight window',
+            value: `${primaryScenario.sunlightHours.toFixed(1)} h`,
+            note: `${compareScenario.sunlightHours.toFixed(1)} h vs comparison`,
+            tone: 'good'
+          },
+          {
+            label: 'Risk score',
+            value: `${primaryScenario.riskScore}%`,
+            note: primaryScenario.riskScore < 50 ? 'Mission-friendly profile' : 'Constraints increase risk',
+            tone: primaryScenario.riskScore < 50 ? 'good' : primaryScenario.riskScore < 70 ? 'watch' : 'risk'
+          }
+        ];
+
+        els.metricGrid.innerHTML = cards
+          .map(
+            (card) => `
+              <div class="metric-card">
+                <div class="metric-label">${card.label}</div>
+                <div class="metric-value">${card.value}</div>
+                <div class="metric-copy"><span class="pill ${card.tone}">${card.note}</span></div>
+              </div>
+            `
+          )
+          .join('');
+      }
+
+      function renderMissionNotes(primaryScenario) {
+        const notes = [
+          `${primaryScenario.site.name} sits at ${primaryScenario.site.lat.toFixed(1)}°, ${primaryScenario.site.lon.toFixed(1)}° and has a ${primaryScenario.sunlightHours.toFixed(1)}-hour daylight window.`,
+          `Solar elevation peaks at ${primaryScenario.noonSun.toFixed(1)}°, which strongly affects array output and thermal conditions.`,
+          `Earth visibility remains above the horizon for ${primaryScenario.earthWindowHours.toFixed(1)} hours, supporting direct communication planning.`,
+          primaryScenario.riskScore < 50
+            ? 'This scenario is relatively favorable for a short operational window and quick power recovery.'
+            : 'This scenario is more sensitive to sunlight timing and communication planning, so it may require a more compact mission profile.'
+        ];
+
+        els.missionNotes.innerHTML = notes.map((note) => `<li>${note}</li>`).join('');
+      }
+
+      function renderComparisonTable(primaryScenario, compareScenario) {
+        const metrics = [
+          ['Solar elevation', `${primaryScenario.sunElevation.toFixed(1)}°`, `${compareScenario.sunElevation.toFixed(1)}°`],
+          ['Earth elevation', `${primaryScenario.earthElevation.toFixed(1)}°`, `${compareScenario.earthElevation.toFixed(1)}°`],
+          ['Sunlight window', `${primaryScenario.sunlightHours.toFixed(1)} h`, `${compareScenario.sunlightHours.toFixed(1)} h`],
+          ['Earth visibility', `${primaryScenario.earthWindowHours.toFixed(1)} h`, `${compareScenario.earthWindowHours.toFixed(1)} h`],
+          ['Power score', `${primaryScenario.powerScore}%`, `${compareScenario.powerScore}%`],
+          ['Comms score', `${primaryScenario.commScore}%`, `${compareScenario.commScore}%`],
+          ['Risk score', `${primaryScenario.riskScore}%`, `${compareScenario.riskScore}%`]
+        ];
+
+        els.comparisonTable.innerHTML = metrics
+          .map(
+            ([label, left, right]) => `
+              <tr>
+                <td>${label}</td>
+                <td>${left}</td>
+                <td>${right}</td>
+              </tr>
+            `
+          )
+          .join('');
+      }
+
+      function renderPointDetail(scenario) {
+        const { site, sunElevation, earthElevation, sunlightHours, earthWindowHours } = scenario;
+        const heading = site && site.name ? site.name : 'Selected landing point';
+        const coordinates = site && site.lat !== undefined ? `${site.lat.toFixed(1)}°, ${site.lon.toFixed(1)}°` : `${scenario.site.lat.toFixed(2)}°, ${scenario.site.lon.toFixed(2)}°`;
+
+        els.pointDetail.innerHTML = `
+          <div class="point-detail-header">Selected surface point</div>
+          <div class="point-detail-name">${heading}</div>
+          <div class="point-detail-meta">
+            Coordinates: ${coordinates}<br />
+            Sun elevation: ${sunElevation.toFixed(1)}°<br />
+            Earth elevation: ${earthElevation.toFixed(1)}°<br />
+            Daylight: ${sunlightHours.toFixed(1)} h<br />
+            Earth visibility: ${earthWindowHours.toFixed(1)} h
+          </div>
+        `;
+      }
+
+      function initThreeScene() {
+        const container = els.moonStage;
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x040d1a);
+        scene.fog = new THREE.Fog(0x040d1a, 2.8, 8);
+
+        const camera = new THREE.PerspectiveCamera(32, container.clientWidth / container.clientHeight, 0.1, 50);
+        camera.position.set(0, 0.3, 4.4);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        container.appendChild(renderer.domElement);
+
+        const ambient = new THREE.AmbientLight(0xbfe5ff, 1.2);
+        scene.add(ambient);
+
+        const sunLight = new THREE.PointLight(0xffefbf, 2.4, 20);
+        sunLight.position.set(3.4, 1.8, 2.5);
+        scene.add(sunLight);
+
+        const rimLight = new THREE.PointLight(0x5bd6ff, 2.2, 20);
+        rimLight.position.set(-3.5, -1.6, -2.5);
+        scene.add(rimLight);
+
+        const moonGroup = new THREE.Group();
+        moonGroup.rotation.set(0.35, 0.9, 0.1);
+        scene.add(moonGroup);
+
+        const moonMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0x8d97a3,
+          roughness: 0.96,
+          metalness: 0.08,
+          emissive: 0x1f3c64,
+          emissiveIntensity: 0.38,
+          clearcoat: 0.35,
+          clearcoatRoughness: 0.9
+        });
+
+        const moon = new THREE.Mesh(new THREE.SphereGeometry(1.45, 100, 100), moonMaterial);
+        moon.userData.isMoon = true;
+        moonGroup.add(moon);
+
+        const hologramShell = new THREE.Mesh(
+          new THREE.SphereGeometry(1.58, 48, 48),
+          new THREE.MeshBasicMaterial({
+            color: 0x66d7ff,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide,
+            wireframe: true
+          })
+        );
+        moonGroup.add(hologramShell);
+
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 1400;
+        const positions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i += 1) {
+          positions[i * 3] = (Math.random() - 0.5) * 14;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * 14;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 14;
+        }
+
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starfield = new THREE.Points(
+          starsGeometry,
+          new THREE.PointsMaterial({ color: 0xdbeaff, size: 0.025, transparent: true, opacity: 0.9 })
+        );
+        scene.add(starfield);
+
+        const markerGroup = new THREE.Group();
+        scene.add(markerGroup);
+        const markerColors = [0xf9cf71, 0x7de4b7, 0x66d7ff, 0x9d8bff, 0xffb870];
+
+        siteLibrary.forEach((site, index) => {
+          const marker = new THREE.Mesh(
+            new THREE.SphereGeometry(0.07, 24, 24),
+            new THREE.MeshStandardMaterial({
+              color: markerColors[index % markerColors.length],
+              emissive: markerColors[index % markerColors.length],
+              emissiveIntensity: 1.4,
+              metalness: 0.2,
+              roughness: 0.3
+            })
+          );
+          marker.position.copy(latLonToVector3(site.lat, site.lon, 1.52));
+          marker.userData = { site };
+          markerGroup.add(marker);
+          moonState.interactiveObjects.push(marker);
+        });
+
+        moonState.scene = scene;
+        moonState.camera = camera;
+        moonState.renderer = renderer;
+        moonState.moon = moon;
+
+        const onResize = () => {
+          const { clientWidth, clientHeight } = container;
+          if (!clientWidth || !clientHeight) return;
+          camera.aspect = clientWidth / clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(clientWidth, clientHeight);
+        };
+
+        window.addEventListener('resize', onResize);
+        onResize();
+
+        const animate = () => {
+          requestAnimationFrame(animate);
+          moonGroup.rotation.y += 0.004;
+          moonGroup.rotation.x = 0.35 + Math.sin(Date.now() * 0.0008) * 0.1;
+          starfield.rotation.y -= 0.00035;
+          renderer.render(scene, camera);
+        };
+
+        animate();
+
+        renderer.domElement.addEventListener('pointerdown', (event) => {
+          const rect = renderer.domElement.getBoundingClientRect();
+          moonState.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          moonState.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+          moonState.raycaster.setFromCamera(moonState.pointer, camera);
+          const intersects = moonState.raycaster.intersectObjects([moon, ...moonState.interactiveObjects], false);
+
+          if (!intersects.length) return;
+
+          const hit = intersects[0].object;
+          const targetSite = hit.userData && hit.userData.site ? hit.userData.site : {
+            name: 'Selected lunar point',
+            lat: Number(vector3ToLatLon(intersects[0].point).lat),
+            lon: Number(vector3ToLatLon(intersects[0].point).lon)
+          };
+
+          if (!hit.userData || !hit.userData.site) {
+            const { lat, lon } = vector3ToLatLon(intersects[0].point);
+            targetSite.name = 'Selected lunar point';
+            targetSite.lat = Number(lat);
+            targetSite.lon = Number(lon);
+            targetSite.region = 'Custom landing point';
+            targetSite.description = 'User-selected point on the lunar surface.';
+          }
+
+          const pointScenario = computeScenario(targetSite, els.dateInput.value, els.timeInput.value);
+          renderPointDetail(pointScenario);
+          els.siteSummary.innerHTML = `
+            <strong>${pointScenario.site.name}</strong><br />
+            ${pointScenario.siteSummary}<br />
+            <span style="color: var(--cyan);">Lat ${pointScenario.site.lat.toFixed(2)}°, Lon ${pointScenario.site.lon.toFixed(2)}°</span>
+          `;
+        });
+      }
+
+      function renderVisual(primaryScenario, compareScenario) {
+        const cx = 250;
+        const cy = 210;
+        const radius = 140;
+
+        const items = [
+          {
+            label: 'Sun',
+            azimuth: primaryScenario.sunAzimuth,
+            elevation: primaryScenario.sunElevation,
+            color: '#f9cf71',
+            size: 11,
+            opacity: 1
+          },
+          {
+            label: 'Earth',
+            azimuth: primaryScenario.earthAzimuth,
+            elevation: primaryScenario.earthElevation,
+            color: '#66d7ff',
+            size: 9,
+            opacity: 1
+          },
+          {
+            label: compareScenario.site.name,
+            azimuth: compareScenario.sunAzimuth,
+            elevation: compareScenario.sunElevation,
+            color: '#7de4b7',
+            size: 7,
+            opacity: 0.5
+          }
+        ];
+
+        const pointFor = (azimuth, elevation, scale = 1) => {
+          const angle = degToRad(azimuth);
+          const normalized = clamp((elevation + 15) / 90, 0, 1);
+          const distance = 30 + normalized * radius * scale;
+          return {
+            x: cx + Math.sin(angle) * distance,
+            y: cy - Math.cos(angle) * distance
+          };
+        };
+
+        const markup = items
+          .map((item) => {
+            const point = pointFor(item.azimuth, item.elevation, item.label === compareScenario.site.name ? 0.78 : 1);
+            const labelPoint = pointFor(item.azimuth, item.elevation + 12, item.label === compareScenario.site.name ? 0.82 : 1.08);
+            return `
+              <g>
+                <circle cx="${point.x}" cy="${point.y}" r="${item.size}" fill="${item.color}" opacity="${item.opacity}"/>
+                <text x="${labelPoint.x + 10}" y="${labelPoint.y - 6}" fill="${item.color}" font-size="12" font-weight="700" opacity="${item.opacity}">${item.label}</text>
+              </g>
+            `;
+          })
+          .join('');
+
+        els.firstSiteName.textContent = primaryScenario.site.name;
+        els.secondSiteName.textContent = compareScenario.site.name;
+
+        els.siteSummary.innerHTML = `
+          <strong>${primaryScenario.site.name}</strong><br />
+          ${primaryScenario.siteSummary}<br />
+          <span style="color: var(--cyan);">${primaryScenario.site.name} = ${primaryScenario.sunElevation.toFixed(1)}° Sun / ${primaryScenario.earthElevation.toFixed(1)}° Earth</span>
+        `;
+      }
+
+      function renderAll() {
+        const site = getSelectedSite();
+        const compareSite = getCompareSite();
+        const scenario = computeScenario(site, els.dateInput.value, els.timeInput.value);
+        const compareScenario = computeScenario(compareSite, els.dateInput.value, els.timeInput.value);
+
+        buildMetricCards(scenario, compareScenario);
+        renderMissionNotes(scenario);
+        renderComparisonTable(scenario, compareScenario);
+        renderPointDetail(scenario);
+        renderVisual(scenario, compareScenario);
+      }
+
+      function attachEvents() {
+        els.siteSelect.addEventListener('change', () => {
+          const siteIndex = siteLibrary.findIndex((site) => site.name === els.siteSelect.value);
+          starts.siteIndex = siteIndex;
+          updateInputsFromSite(siteIndex);
+          renderAll();
+        });
+
+        els.compareSelect.addEventListener('change', () => {
+          const siteIndex = siteLibrary.findIndex((site) => site.name === els.compareSelect.value);
+          starts.compareIndex = siteIndex;
+          renderAll();
+        });
+
+        els.latInput.addEventListener('input', () => {
+          const site = getSelectedSite();
+          site.lat = Number(els.latInput.value || 0);
+          renderAll();
+        });
+
+        els.lonInput.addEventListener('input', () => {
+          const site = getSelectedSite();
+          site.lon = Number(els.lonInput.value || 0);
+          renderAll();
+        });
+
+        els.dateInput.addEventListener('change', renderAll);
+        els.timeInput.addEventListener('change', renderAll);
+        els.updateButton.addEventListener('click', renderAll);
+      }
+
+      function initialize() {
+        populateOptions();
+        els.dateInput.value = starts.date;
+        els.timeInput.value = starts.time;
+        updateInputsFromSite(starts.siteIndex);
+        attachEvents();
+        initThreeScene();
+        renderAll();
+      }
+
+      initialize();
+    </script>
+  </body>
+</html>
