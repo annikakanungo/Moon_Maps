@@ -16,7 +16,7 @@ Setup (once):
 Run:
   python prep_site_data.py --start 2026-11-14 --days 30
 """
-import argparse, json, math, os, re, urllib.parse, urllib.request
+import argparse, json, math, os, re, ssl, subprocess, urllib.error, urllib.parse, urllib.request
 import numpy as np
 import rasterio
 from pyproj import CRS, Transformer
@@ -95,7 +95,16 @@ def horizons(body, lat, lon, start, stop, step="1h"):
         "STEP_SIZE": f"'{step}'", "QUANTITIES": "'4'", "ANG_FORMAT": "'DEG'", "CSV_FORMAT": "'YES'",
     }
     url = "https://ssd.jpl.nasa.gov/api/horizons.api?" + urllib.parse.urlencode(q)
-    return parse_horizons(urllib.request.urlopen(url, timeout=120).read().decode())
+    return parse_horizons(fetch(url))
+
+
+def fetch(url):
+    """Download a URL; fall back to the system curl if Python cannot verify the certificate."""
+    try:
+        return urllib.request.urlopen(url, timeout=120).read().decode()
+    except (urllib.error.URLError, ssl.SSLError):
+        return subprocess.run(["curl", "-sSL", "--max-time", "120", url],
+                              capture_output=True, text=True, check=True).stdout
 
 
 def parse_horizons(text):
@@ -135,8 +144,13 @@ if __name__ == "__main__":
     stop = (np.datetime64(a.start) + np.timedelta64(a.days, "D")).astype(str)
     for sid, (name, lat, lon) in SITES.items():
         print(f"{name}: terrain horizon ...", flush=True)
-        rec = {"id": sid, "name": name, "lat": lat, "lon": lon, "start": a.start, "days": a.days,
-               "horizon": horizon_mask(a.dem, lat, lon, a.max_km, a.mast)}
+        cache = f"data/horizon_{sid}.json"  # terrain step is slow, so keep its result
+        if os.path.exists(cache):
+            hz = json.load(open(cache))
+        else:
+            hz = horizon_mask(a.dem, lat, lon, a.max_km, a.mast)
+            json.dump(hz, open(cache, "w"))
+        rec = {"id": sid, "name": name, "lat": lat, "lon": lon, "start": a.start, "days": a.days, "horizon": hz}
         print("  Sun and Earth from JPL Horizons ...", flush=True)
         rec["sun"] = horizons(10, lat, lon, a.start, stop)
         rec["earth"] = horizons(399, lat, lon, a.start, stop)
